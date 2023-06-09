@@ -10,6 +10,7 @@ exchange = ccxt.binance({
 })
 
 # Parameters for TRAMA and Trendlines with Breaks
+# Experiment with the parameters
 trama_length = 14 #specifies the number of candles used to calculate the moving average
 regularity_period = 20 #determines the number of candles used to measure regularity
 adaptive_factor = 0.5 #controls the degree of adaptiveness to regularity, It is multiplied by the standard deviation of the regularity to adjust the adaptive component of the TRAMA
