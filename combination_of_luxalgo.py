@@ -4,21 +4,19 @@ import time
 
 # Initialize the cryptocurrency exchange API
 exchange = ccxt.binance({
-    'apiKey': 'your_api_key', #our api key
-    'secret': 'your_secret_key', #our secret key
+    'apiKey': 'your_api_key',
+    'secret': 'your_secret_key',
     'enableRateLimit': True,
 })
 
 # Parameters for TRAMA and Trendlines with Breaks
-# Experiment with the parameters
-trama_length = 14 #specifies the number of candles used to calculate the moving average)
-regularity_period = 20 #determines the number of candles used to measure regularity
-adaptive_factor = 0.5  #controls the degree of adaptiveness to regularity, It is multiplied 
-by the standard deviation of the regularity to adjust the adaptive component of the TRAMA
+trama_length = 14
+regularity_period = 20
+adaptive_factor = 0.5
 
 # Function to calculate TRAMA
 def trama(prices):
-    ema = np.mean(prices[-trama_length:]) #exponential moving average
+    ema = np.mean(prices[-trama_length:])
     regularity = np.abs(prices[-1] - prices[-regularity_period])
     adaptive = adaptive_factor * np.std(regularity)
     return ema + adaptive * (prices[-1] - ema)
@@ -34,7 +32,7 @@ def is_trendline_broken(prices, trendline):
 # Main trading loop
 def main():
     symbol = 'BTC/USDT'
-    timeframe = '10m'
+    timeframe = '1d'
 
     while True:
         try:
@@ -54,13 +52,12 @@ def main():
                 # Place buy/sell orders or manage existing positions
 
             # Sleep for a specific duration before the next iteration
-            time.sleep(60)
+                time.sleep(60)
 
         except Exception as e:
             print(f"Error: {str(e)}")
             time.sleep(60)
 
 # Run the trading bot
-if name == "main":
+if __name__ == "__main__":
     main()
-    #trading bot code to be excecuted
