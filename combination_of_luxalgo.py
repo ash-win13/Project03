@@ -16,6 +16,7 @@ regularity_period = 20 #determines the number of candles used to measure regular
 adaptive_factor = 0.5 #controls the degree of adaptiveness to regularity, It is multiplied by the standard deviation of the regularity to adjust the adaptive component of the TRAMA
 
 # Function to calculate TRAMA
+# It calculates the EMA over the last trama_length prices and adjusts it with an adaptive factor based on the regulrity of price movements.
 def trama(prices):
     ema = np.mean(prices[-trama_length:])
     regularity = np.abs(prices[-1] - prices[-regularity_period])
@@ -23,6 +24,7 @@ def trama(prices):
     return ema + adaptive * (prices[-1] - ema)
 
 # Function to check if a trendline is broken
+# It compares the previous and current prices with the trendline value and returns True if a break has occurred.
 def is_trendline_broken(prices, trendline):
     if len(prices) < 2:
         return False
