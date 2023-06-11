@@ -38,7 +38,7 @@ def main():
 
     while True:
         try:
-            # Fetch historical candlestick data
+            # GEt the candlestick data
             candles = exchange.fetch_ohlcv(symbol, timeframe)
             close_prices = [candle[4] for candle in candles]
 
@@ -50,10 +50,9 @@ def main():
             trendline = previous_trama
 
             if is_trendline_broken(close_prices, trendline):
-                # Execute a trading signal based on the trendline break
-                # Place buy/sell orders or manage existing positions
+            
 
-            # Sleep for a specific duration before the next iteration
+            # Sleep before the next iteration
             time.sleep(60)
 
         except Exception as e:
