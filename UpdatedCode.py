@@ -52,8 +52,8 @@ def main_loop():
             if is_enabled:
                 symbol = input("Enter the symbol of the cryptocurrency (e.g., BTC/USDT): ")
                 buy_quantity = float(input("Enter the quantity to buy: "))
-                sell_quantity = float(input("Enter the quantity to sell: "))
-
+                sell_quantity = buy_quantity
+                
                 candlesticks = exchange.fetch_ohlcv(symbol, '1m')
                 close_prices = [candlestick[4] for candlestick in candlesticks]
 
