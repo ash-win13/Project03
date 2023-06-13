@@ -20,12 +20,16 @@ exchange = ccxt.binance({
 def calculate_trendline_with_breaks(data):
     trendline = sum(data[-trendline_period:]) / trendline_period
 
-    if data[-1] > trendline and data[-2] <= trendline:
+    '''if data[-1] > trendline and data[-2] <= trendline:
         return True
     elif data[-1] < trendline and data[-2] >= trendline:
         return True
     else:
+        return False'''
+    if data[-1] == trendline:
         return False
+    else:
+        return True
 
 def calculate_trama(data):
     if len(data) >= trama_period:
