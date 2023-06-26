@@ -1,66 +1,103 @@
 import ccxt
-import numpy as np
+from collections import deque
 import time
+import logging
+import mysql.connector
 
-# Initialize the cryptocurrency exchange API
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Configuration
+symbol = 'BTC/USDT'
+trendline_period = 20
+trama_period = 10
+
+# MetaMask wallet address
+wallet_address = 'wallent addressnot reqiured'
+
+# Binance API credentials
+api_key = 'YOUR_API_KEY'
+api_secret = 'YOUR_API_SECRET'
+
+# Initialize Binance exchange instance
 exchange = ccxt.binance({
-    'apiKey': 'your_api_key', #our api key
-    'secret': 'your_secret_key', #our secret key
-    'enableRateLimit': True,
+    'apiKey': api_key,
+    'secret': api_secret,
 })
 
-# Parameters for TRAMA and Trendlines with Breaks
-# Experiment with the parameters
-trama_length = 14 #specifies the number of candles used to calculate the moving average)
-regularity_period = 20 #determines the number of candles used to measure regularity
-adaptive_factor = 0.5  #controls the degree of adaptiveness to regularity, It is multiplied 
-by the standard deviation of the regularity to adjust the adaptive component of the TRAMA
+# Initialize trama deque
+trama = deque(maxlen=trama_period)
 
-# Function to calculate TRAMA
-def trama(prices):
-    ema = np.mean(prices[-trama_length:]) #exponential moving average
-    regularity = np.abs(prices[-1] - prices[-regularity_period])
-    adaptive = adaptive_factor * np.std(regularity)
-    return ema + adaptive * (prices[-1] - ema)
+# Establish connection to the MySQL database
+connection = mysql.connector.connect(
+    host="localhost",
+    user="your_username",
+    password="your_password",
+    database="your_database"
+)
 
-# Function to check if a trendline is broken
-def is_trendline_broken(prices, trendline):
-    if len(prices) < 2:
-        return False
-    if prices[-2] <= trendline and prices[-1] > trendline:
-        return True
-    return False
+def calculate_trendline_with_breaks(data):
+    """
+    Calculate trendline break based on the given data.
 
-# Main trading loop
-def main():
-    symbol = 'BTC/USDT'
-    timeframe = '10m'
+    Args:
+        data (list): List of closing prices.
 
+    Returns:
+        bool: True if a trendline break has occurred, False otherwise.
+    """
+    trendline = sum(data[-trendline_period:]) / trendline_period
+    return data[-1] != trendline
+
+def calculate_trama(data):
+    if len(data) >= trama_period:
+        trama_sum = sum(data[-trama_period:])
+        trama_average = trama_sum / trama_period
+        return trama_average
+    else:
+        return None
+
+def insert_transaction(user_id, symbol, quantity, price):
+    cursor = connection.cursor()
+    sql = "INSERT INTO transactions (user_id, symbol, quantity, price) VALUES (%s, %s, %s, %s)"
+    cursor.execute(sql, (user_id, symbol, quantity, price))
+    connection.commit()
+
+def main_loop():
     while True:
         try:
-            # Fetch historical candlestick data
-            candles = exchange.fetch_ohlcv(symbol, timeframe)
-            close_prices = [candle[4] for candle in candles]
+            # Fetch latest candlestick data
+            candlesticks = exchange.fetch_ohlcv(symbol, '1m')
+            close_prices = [candlestick[4] for candlestick in candlesticks]
 
-            # Calculate TRAMA
-            current_trama = trama(close_prices)
+            # Calculate trendline break
+            trendline_break = calculate_trendline_with_breaks(close_prices)
 
-            # Check for trendline breaks
-            previous_trama = trama(close_prices[:-1])
-            trendline = previous_trama
+            # Calculate trama value
+            trama_value = calculate_trama(close_prices)
+            if trama_value is not None:
+                trama.append(trama_value)
 
-            if is_trendline_broken(close_prices, trendline):
-                # Execute a trading signal based on the trendline break
-                # Place buy/sell orders or manage existing positions
+            # Place buy order if trendline breaks
+            if trendline_break:
+                # Example code to get user ID and buy quantity based on MetaMask integration
+                user_id = 123  # Get the user ID associated with the MetaMask wallet
+                buy_quantity = 0.001  # Calculate the buy quantity based on available funds
 
-            # Sleep for a specific duration before the next iteration
-            time.sleep(60)
+                # Execute a transaction to buy the trading symbol using the calculated buy quantity
+                # ...
 
-        except Exception as e:
-            print(f"Error: {str(e)}")
-            time.sleep(60)
+                # Store the transaction in the database
+                insert_transaction(user_id, symbol, buy_quantity, price)
 
-# Run the trading bot
-if name == "main":
-    main()
-    #trading bot code to be excecuted
+            logger.info("Trendline Break: %s", trendline_break)
+            logger.info("TRAMA: %s", list(trama))
+
+        except ccxt.BaseError as e:
+            logger.error("An error occurred: %s", str(e))
+
+        time.sleep(60)  # 1 minutes
+
+if __name__ == '__main__':
+    main_loop()
