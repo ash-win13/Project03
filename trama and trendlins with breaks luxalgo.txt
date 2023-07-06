@@ -4,32 +4,25 @@ import time
 import logging
 import mysql.connector
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuration
 symbol = 'BTC/USDT'
 trendline_period = 20
 trama_period = 10
 
-# MetaMask wallet address
-wallet_address = 'wallent addressnot reqiured'
+wallet_address = '0x123456789...'
 
-# Binance API credentials
 api_key = 'YOUR_API_KEY'
 api_secret = 'YOUR_API_SECRET'
 
-# Initialize Binance exchange instance
 exchange = ccxt.binance({
     'apiKey': api_key,
     'secret': api_secret,
 })
 
-# Initialize trama deque
 trama = deque(maxlen=trama_period)
 
-# Establish connection to the MySQL database
 connection = mysql.connector.connect(
     host="localhost",
     user="your_username",
@@ -38,15 +31,6 @@ connection = mysql.connector.connect(
 )
 
 def calculate_trendline_with_breaks(data):
-    """
-    Calculate trendline break based on the given data.
-
-    Args:
-        data (list): List of closing prices.
-
-    Returns:
-        bool: True if a trendline break has occurred, False otherwise.
-    """
     trendline = sum(data[-trendline_period:]) / trendline_period
     return data[-1] != trendline
 
@@ -67,7 +51,6 @@ def insert_transaction(user_id, symbol, quantity, price):
 def main_loop():
     while True:
         try:
-            # Fetch latest candlestick data
             candlesticks = exchange.fetch_ohlcv(symbol, '1m')
             close_prices = [candlestick[4] for candlestick in candlesticks]
 
@@ -97,7 +80,7 @@ def main_loop():
         except ccxt.BaseError as e:
             logger.error("An error occurred: %s", str(e))
 
-        time.sleep(60)  # 1 minutes
+        time.sleep(60) 
 
 if __name__ == '__main__':
     main_loop()
